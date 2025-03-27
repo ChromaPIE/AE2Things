@@ -37,18 +37,9 @@ import appeng.util.item.AEItemStack;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.api.IGuiContainerOverlay;
 import codechicken.nei.recipe.GuiOverlayButton;
-import codechicken.nei.recipe.IRecipeHandler;
 
 @Mixin(GuiOverlayButton.class)
 public abstract class MixinGuiOverlayButton {
-
-    @Shadow(remap = false)
-    @Final
-    public IRecipeHandler handler;
-
-    @Shadow(remap = false)
-    @Final
-    public int recipeIndex;
 
     @Shadow(remap = false)
     @Final
@@ -73,11 +64,13 @@ public abstract class MixinGuiOverlayButton {
 
     @Inject(method = "overlayRecipe", at = @At("TAIL"), remap = false)
     public void overlayRecipe(boolean shift, CallbackInfo ci) {
+        GuiOverlayButton here = (GuiOverlayButton) (Object) this;
         if (GuiScreen.isShiftKeyDown() || GuiScreen.isCtrlKeyDown()) {
             moveItems();
         }
         if (!GuiScreen.isCtrlKeyDown() || !(firstGui instanceof AEBaseGui gui)) return;
-        final List<PositionedStack> ingredients = this.handler.getIngredientStacks(recipeIndex);
+        final List<PositionedStack> ingredients = here.handlerRef.handler
+            .getIngredientStacks(here.handlerRef.recipeIndex);
         IItemList<IAEItemStack> list = null;
         if (AE2ThingAPI.instance()
             .terminal()
@@ -142,6 +135,7 @@ public abstract class MixinGuiOverlayButton {
     }
 
     private void moveItems() {
+        GuiOverlayButton here = (GuiOverlayButton) (Object) this;
         if (AE2ThingAPI.instance()
             .terminal()
             .isCraftingTerminal(this.firstGui)) {
@@ -149,7 +143,7 @@ public abstract class MixinGuiOverlayButton {
                 .terminal()
                 .getCraftingTerminal()
                 .get(this.firstGui.inventorySlots.getClass());
-            adapter.moveItems(this.firstGui, this.handler, this.recipeIndex);
+            adapter.moveItems(this.firstGui, here.handlerRef.handler, here.handlerRef.recipeIndex);
         }
     }
 
