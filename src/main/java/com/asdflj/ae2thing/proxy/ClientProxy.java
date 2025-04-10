@@ -1,17 +1,15 @@
 package com.asdflj.ae2thing.proxy;
 
-import static codechicken.lib.gui.GuiDraw.getMousePosition;
 import static net.minecraft.client.gui.GuiScreen.isShiftKeyDown;
 
-import java.awt.Point;
 import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.event.GuiScreenEvent;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.p455w0rd.wirelesscraftingterminal.client.gui.GuiWirelessCraftingTerminal;
 
@@ -19,12 +17,14 @@ import com.asdflj.ae2thing.AE2Thing;
 import com.asdflj.ae2thing.api.AE2ThingAPI;
 import com.asdflj.ae2thing.api.MouseWheelHandler;
 import com.asdflj.ae2thing.client.event.CraftTracking;
+import com.asdflj.ae2thing.client.event.NotificationEvent;
 import com.asdflj.ae2thing.client.event.OpenTerminalEvent;
 import com.asdflj.ae2thing.client.gui.BaseMEGui;
 import com.asdflj.ae2thing.client.gui.GuiCraftingTerminal;
 import com.asdflj.ae2thing.client.gui.GuiInfusionPatternTerminal;
 import com.asdflj.ae2thing.client.gui.GuiWirelessDualInterfaceTerminal;
 import com.asdflj.ae2thing.client.render.BlockPosHighlighter;
+import com.asdflj.ae2thing.client.render.Notification;
 import com.asdflj.ae2thing.common.item.ItemPhial;
 import com.asdflj.ae2thing.loader.KeybindLoader;
 import com.asdflj.ae2thing.loader.ListenerLoader;
@@ -47,7 +47,6 @@ import appeng.client.gui.implementations.GuiMEMonitorable;
 import appeng.client.gui.implementations.GuiPatternTerm;
 import appeng.client.gui.implementations.GuiPatternTermEx;
 import appeng.client.gui.implementations.GuiWirelessTerm;
-import codechicken.nei.LayoutManager;
 import codechicken.nei.api.API;
 import codechicken.nei.recipe.GuiOverlayButton;
 import codechicken.nei.recipe.GuiRecipe;
@@ -165,18 +164,6 @@ public class ClientProxy extends CommonProxy {
             .registerTerminalBlackList(GuiWirelessDualInterfaceTerminal.class);
     }
 
-    private ItemStack getStackMouseOver(GuiContainer window) {
-        try {
-            Point mousePos = getMousePosition();
-            ItemStack item = LayoutManager.instance()
-                .getStackUnderMouse(window, mousePos.x, mousePos.y);
-            if (item != null) return item;
-        } catch (Exception ignored) {
-
-        }
-        return null;
-    }
-
     @SubscribeEvent
     public void tickEvent(TickEvent.PlayerTickEvent event) {
         AE2ThingAPI.instance()
@@ -218,6 +205,18 @@ public class ClientProxy extends CommonProxy {
     }
 
     @SubscribeEvent
+    public void notificationEvent(NotificationEvent event) {
+        Notification.INSTANCE.add(event);
+    }
+
+    @SubscribeEvent
+    public void onRenderGameOverlay(RenderGameOverlayEvent.Post event) {
+        if (event.type == RenderGameOverlayEvent.ElementType.ALL) {
+            Notification.INSTANCE.draw();
+        }
+    }
+
+    @SubscribeEvent
     public void openTerminalEvent(OpenTerminalEvent event) {
         event.openTerminal();
     }
@@ -250,5 +249,6 @@ public class ClientProxy extends CommonProxy {
         AE2ThingAPI.instance()
             .getPinned()
             .clear();
+        Notification.INSTANCE.clear();
     }
 }
