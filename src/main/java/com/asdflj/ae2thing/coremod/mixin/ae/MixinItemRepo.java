@@ -20,6 +20,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.asdflj.ae2thing.api.AE2ThingAPI;
+import com.asdflj.ae2thing.client.me.AdvItemRepo;
 import com.asdflj.ae2thing.client.me.IDisplayRepoExtend;
 
 import appeng.api.storage.data.IAEItemStack;
@@ -41,6 +42,9 @@ public abstract class MixinItemRepo implements IDisplayRepo, IDisplayRepoExtend 
     @Shadow(remap = false)
     @Final
     private IItemList<IAEItemStack> list;
+
+    @Shadow(remap = false)
+    private boolean paused;
 
     private void setAsEmpty(int i) {
         this.view.add(i, null);
@@ -84,6 +88,20 @@ public abstract class MixinItemRepo implements IDisplayRepo, IDisplayRepoExtend 
 
     @Inject(method = "updateView", at = @At(value = "HEAD"), remap = false)
     public void updateViewHead(CallbackInfo ci) {
+        if (((Object) this) instanceof AdvItemRepo repo) {
+            if (!repo.hasCache()) {
+                repo.getLock()
+                    .lock();
+                viewFilter();
+                repo.getLock()
+                    .unlock();
+            }
+        } else {
+            viewFilter();
+        }
+    }
+
+    private void viewFilter() {
         List<IAEItemStack> list = this.view.stream()
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
@@ -126,5 +144,10 @@ public abstract class MixinItemRepo implements IDisplayRepo, IDisplayRepoExtend 
             }
             this.setAsEmpty(i);
         }
+    }
+
+    @Override
+    public void setAdvRepoPause(boolean pause) {
+        this.paused = pause;
     }
 }

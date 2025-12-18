@@ -8,13 +8,16 @@
   "mixins": [
   ],
   "client": [
+    "ae.AccessorGuiScrollbar",
     "ae.MixinAEBaseGui",
     "ae.MixinContainerCraftConfirm",
+    "ae.MixinCraftingCPUCluster",
+    "ae.MixinGuiCraftAmount",
     "ae.MixinGuiCraftConfirm",
     "ae.MixinItemRepo",
-    "nee.MixinGuiEventHandler",
-    "nee.MixinGuiUtils",
-    "nee.MixinNEEContainerDrawHandler",
+    "ae.MixinTileIOPort",
+    "br.MixinBRUtil",
+    "fc.MixinGuiFluidCraftAmount",
     "nei.MixinGuiContainerManager",
     "nei.MixinGuiOverlayButton",
     "nei.MixinIOverlayHandler",
@@ -22,17 +25,12 @@
     "nei.MixinRecipeItemInputHandler",
     "tc.nei.MixinLoadCraftingRecipes",
     "tc.nei.MixinTemplateRecipeHandler",
-    "wct.MixinRandomUtils",
-    "ae.MixinSlotRestrictedInput",
-    "ae.MixinItemViewCell",
-    "ae.AccessorGuiScrollbar",
-    "ae.MixinCraftingCPUCluster"
+    "wct.MixinRandomUtils"
   ],
   "server": [
     "ae.MixinContainerCraftConfirm",
-    "wct.MixinRandomUtils",
-    "ae.MixinSlotRestrictedInput",
-    "ae.MixinItemViewCell",
-    "ae.MixinCraftingCPUCluster"
+    "ae.MixinCraftingCPUCluster",
+    "ae.MixinTileIOPort",
+    "wct.MixinRandomUtils"
   ]
 }

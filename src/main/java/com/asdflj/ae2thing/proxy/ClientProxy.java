@@ -16,9 +16,18 @@ import net.p455w0rd.wirelesscraftingterminal.client.gui.GuiWirelessCraftingTermi
 import com.asdflj.ae2thing.AE2Thing;
 import com.asdflj.ae2thing.api.AE2ThingAPI;
 import com.asdflj.ae2thing.api.MouseWheelHandler;
+import com.asdflj.ae2thing.api.adapter.terminal.item.BackpackTerminal;
+import com.asdflj.ae2thing.api.adapter.terminal.item.DualInterfaceTerminal;
+import com.asdflj.ae2thing.api.adapter.terminal.item.FCBaseItemTerminal;
+import com.asdflj.ae2thing.api.adapter.terminal.item.FCUltraTerminal;
+import com.asdflj.ae2thing.api.adapter.terminal.item.WCTWirelessCraftingTerminal;
+import com.asdflj.ae2thing.api.adapter.terminal.parts.AETerminal;
+import com.asdflj.ae2thing.api.adapter.terminal.parts.FCPatternTerminal;
 import com.asdflj.ae2thing.client.event.CraftTracking;
+import com.asdflj.ae2thing.client.event.GuiOverlayButtonEvent;
 import com.asdflj.ae2thing.client.event.NotificationEvent;
 import com.asdflj.ae2thing.client.event.OpenTerminalEvent;
+import com.asdflj.ae2thing.client.event.UpdateAmountTextEvent;
 import com.asdflj.ae2thing.client.gui.BaseMEGui;
 import com.asdflj.ae2thing.client.gui.GuiCraftingTerminal;
 import com.asdflj.ae2thing.client.gui.GuiInfusionPatternTerminal;
@@ -50,6 +59,7 @@ import appeng.client.gui.implementations.GuiWirelessTerm;
 import codechicken.nei.api.API;
 import codechicken.nei.recipe.GuiOverlayButton;
 import codechicken.nei.recipe.GuiRecipe;
+import codechicken.nei.recipe.GuiRecipeButton;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLLoadCompleteEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
@@ -59,7 +69,7 @@ import cpw.mods.fml.common.network.FMLNetworkEvent;
 
 public class ClientProxy extends CommonProxy {
 
-    private static GuiRecipe<?> recipe = null;
+    private static GuiOverlayButton overlayButton = null;
     public static List<MouseWheelHandler> mouseHandlers = new ArrayList<>();
 
     @Override
@@ -75,6 +85,10 @@ public class ClientProxy extends CommonProxy {
                 FindITUtil.instance.run();
             }
         }
+    }
+
+    public static GuiOverlayButton getOverlayButton() {
+        return overlayButton;
     }
 
     @Override
@@ -98,10 +112,15 @@ public class ClientProxy extends CommonProxy {
     }
 
     @SubscribeEvent
+    public void updateCraftAmount(UpdateAmountTextEvent amount) {
+        amount.updateAmount();
+    }
+
+    @SubscribeEvent
     public boolean handleMouseWheelInput(GuiScrollEvent event) {
         if (mouseHandlers.isEmpty()) return false;
         for (MouseWheelHandler handler : mouseHandlers) {
-            if (handler.handleMouseWheel(event, recipe)) {
+            if (handler.handleMouseWheel(event, overlayButton)) {
                 return true;
             }
         }
@@ -162,6 +181,27 @@ public class ClientProxy extends CommonProxy {
         AE2ThingAPI.instance()
             .terminal()
             .registerTerminalBlackList(GuiWirelessDualInterfaceTerminal.class);
+        AE2ThingAPI.instance()
+            .terminal()
+            .registerTerminalSet(BackpackTerminal.instance);
+        AE2ThingAPI.instance()
+            .terminal()
+            .registerTerminalSet(DualInterfaceTerminal.instance);
+        AE2ThingAPI.instance()
+            .terminal()
+            .registerTerminalSet(FCBaseItemTerminal.instance);
+        AE2ThingAPI.instance()
+            .terminal()
+            .registerTerminalSet(FCUltraTerminal.instance);
+        AE2ThingAPI.instance()
+            .terminal()
+            .registerTerminalSet(WCTWirelessCraftingTerminal.instance);
+        AE2ThingAPI.instance()
+            .terminal()
+            .registerTerminalSet(new FCPatternTerminal());
+        AE2ThingAPI.instance()
+            .terminal()
+            .registerTerminalSet(new AETerminal());
     }
 
     @SubscribeEvent
@@ -172,13 +212,19 @@ public class ClientProxy extends CommonProxy {
     }
 
     @SubscribeEvent
-    public void onActionPerformedEventPre(GuiScreenEvent.ActionPerformedEvent.Pre event) {
-        // nee handler overlayRecipe so i need other way
-        if (event.button instanceof GuiOverlayButton && event.gui instanceof GuiRecipe<?>g) {
-            recipe = g;
-        } else {
-            recipe = null;
+    public void onActionPerformedEventPost(GuiRecipeButton.UpdateRecipeButtonsEvent.Post event) {
+        if (!(event.gui instanceof GuiRecipe<?>)) return;
+        overlayButton = null;
+        for (GuiRecipeButton btn : event.buttonList) {
+            if (btn instanceof GuiOverlayButton gob) {
+                gob.setRequireShiftForOverlayRecipe(false);
+            }
         }
+    }
+
+    @SubscribeEvent
+    public void onActionOverlayButton(GuiOverlayButtonEvent event) {
+        overlayButton = event.getButton();
     }
 
     @SubscribeEvent
@@ -190,6 +236,9 @@ public class ClientProxy extends CommonProxy {
             .terminal()
             .isCraftingTerminal(event.gui)) {
             MinecraftForge.EVENT_BUS.post(new CraftTracking());
+        }
+        if (UpdateAmountTextEvent.needUpdateAmountText()) {
+            MinecraftForge.EVENT_BUS.post(new UpdateAmountTextEvent());
         }
     }
 
