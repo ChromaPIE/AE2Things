@@ -10,10 +10,10 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.util.ForgeDirection;
-import net.p455w0rd.wirelesscraftingterminal.common.WCTGuiHandler;
 import net.p455w0rd.wirelesscraftingterminal.common.container.ContainerWirelessCraftingTerminal;
-import net.p455w0rd.wirelesscraftingterminal.reference.Reference;
 
+import appeng.core.sync.GuiBridge;
+import appeng.util.Platform;
 import codechicken.nei.PositionedStack;
 import codechicken.nei.recipe.IRecipeHandler;
 
@@ -21,13 +21,7 @@ public class WCTCraftingTerminal implements ICraftingTerminalAdapter {
 
     @Override
     public void openGui(EntityPlayerMP player, TileEntity tile, ForgeDirection face, Object target) {
-        WCTGuiHandler.launchGui(
-            Reference.GUI_CRAFT_CONFIRM,
-            player,
-            player.worldObj,
-            (int) player.posX,
-            (int) player.posY,
-            (int) player.posZ);
+        Platform.openGUI(player, null, ForgeDirection.UNKNOWN, GuiBridge.GUI_CRAFTING_CONFIRM);
     }
 
     @Override

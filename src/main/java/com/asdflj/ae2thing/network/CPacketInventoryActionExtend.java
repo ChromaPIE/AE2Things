@@ -24,6 +24,7 @@ import com.asdflj.ae2thing.api.InventoryActionExtend;
 import com.asdflj.ae2thing.api.WirelessObject;
 import com.asdflj.ae2thing.client.gui.container.ContainerCraftingTerminal;
 import com.asdflj.ae2thing.client.gui.container.ContainerPatternModifier;
+import com.asdflj.ae2thing.client.gui.container.ContainerPatternValueAmount;
 import com.asdflj.ae2thing.client.gui.container.ContainerPatternValueName;
 import com.asdflj.ae2thing.inventory.InventoryHandler;
 import com.asdflj.ae2thing.inventory.gui.GuiType;
@@ -177,9 +178,38 @@ public class CPacketInventoryActionExtend implements IMessage {
                             AE2Thing.proxy.netHandler.sendTo(new SPacketSetItemName(name), sender);
                         }
                         if (sender.openContainer instanceof final ContainerPatternValueName cpv) {
-                            if (baseContainer.getTargetStack() != null) {
+                            if (baseContainer.getTargetStack() instanceof IAEItemStack targetStack) {
                                 cpv.setValueIndex(message.slot);
-                                cpv.getPatternValue().putStack(baseContainer.getTargetStack().getItemStack());
+                                cpv.getPatternValue().putStack(targetStack.getItemStack());
+                            }
+                            cpv.detectAndSendChanges();
+                        }
+                    }
+                } else if (message.action == InventoryActionExtend.SET_PATTERN_VALUE) {
+                    final ContainerOpenContext context = baseContainer.getOpenContext();
+                    if (context != null && message.stack != null) {
+                        final TileEntity te = context.getTile();
+                        if (te != null) {
+                            InventoryHandler.openGui(
+                                    sender,
+                                    te.getWorldObj(),
+                                    new BlockPos(te),
+                                    Objects.requireNonNull(baseContainer.getOpenContext().getSide()),
+                                    GuiType.PATTERN_VALUE_SET);
+                        } else {
+                            InventoryHandler.openGui(
+                                sender,
+                                sender.getEntityWorld(),
+                                new BlockPos(((WirelessTerminal) target).getInventorySlot(),0,0),
+                                Objects.requireNonNull(baseContainer.getOpenContext().getSide()),
+                                GuiType.PATTERN_VALUE_SET_ITEM);
+                        }
+                        int amt = (int) message.stack.getStackSize();
+                        AE2Thing.proxy.netHandler.sendTo(new SPacketSetItemAmount(amt), sender);
+                        if (sender.openContainer instanceof final ContainerPatternValueAmount cpv) {
+                            if (baseContainer.getTargetStack() instanceof IAEItemStack targetStack) {
+                                cpv.setValueIndex(message.slot);
+                                cpv.getPatternValue().putStack(targetStack.getItemStack());
                             }
                             cpv.detectAndSendChanges();
                         }

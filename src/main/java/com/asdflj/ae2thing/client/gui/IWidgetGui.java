@@ -8,7 +8,7 @@ import net.minecraft.inventory.Slot;
 
 import com.asdflj.ae2thing.client.gui.widget.IAEBasePanel;
 
-import appeng.client.me.InternalSlotME;
+import appeng.client.gui.slots.VirtualMESlot;
 
 public interface IWidgetGui {
 
@@ -20,7 +20,9 @@ public interface IWidgetGui {
 
     IAEBasePanel getActivePanel();
 
-    List<InternalSlotME> getMeSlots();
+    List<VirtualMESlot> getVirtualSlots();
+
+    void clearVirtualSlots();
 
     RenderItem getRenderItem();
 

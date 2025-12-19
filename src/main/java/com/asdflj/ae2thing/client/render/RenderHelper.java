@@ -9,7 +9,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
 import net.minecraftforge.fluids.Fluid;
@@ -29,7 +28,7 @@ import com.mitchej123.hodgepodge.textures.IPatchedTextureAtlasSprite;
 import appeng.api.storage.data.IAEFluidStack;
 import appeng.api.storage.data.IAEItemStack;
 import appeng.api.storage.data.IAEStack;
-import appeng.client.me.SlotME;
+import appeng.client.gui.slots.VirtualMESlot;
 
 public class RenderHelper {
 
@@ -39,15 +38,15 @@ public class RenderHelper {
     public static long interval = 30;
     public static RenderItem itemRender = new RenderItem();
 
-    public static void drawPinnedSlot(Slot slotIn, GuiScreen gui) {
+    public static void drawPinnedSlot(VirtualMESlot slotIn, GuiScreen gui) {
         if (!AE2ThingAPI.instance()
             .terminal()
             .isPinTerminal(gui)) return;
-        if (slotIn instanceof SlotME slotME && slotME.getHasStack()) {
-            int x = slotIn.xDisplayPosition;
-            int y = slotIn.yDisplayPosition;
-            IAEItemStack item = ((SlotME) slotIn).getAEStack();
-            if (!AE2ThingAPI.instance()
+        if (slotIn.getAEStack() != null) {
+            int x = slotIn.getX();
+            int y = slotIn.getY();
+            IAEItemStack item = slotIn.getAEStack() instanceof IAEItemStack ais ? ais : null;
+            if (item == null || !AE2ThingAPI.instance()
                 .getPinned()
                 .isPinnedItem(item)) return;
             Pinned.PinInfo info = AE2ThingAPI.instance()

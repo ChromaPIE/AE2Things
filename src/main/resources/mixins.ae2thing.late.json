@@ -17,7 +17,6 @@
     "ae.MixinItemRepo",
     "ae.MixinTileIOPort",
     "br.MixinBRUtil",
-    "fc.MixinGuiFluidCraftAmount",
     "nei.MixinGuiContainerManager",
     "nei.MixinGuiOverlayButton",
     "nei.MixinIOverlayHandler",

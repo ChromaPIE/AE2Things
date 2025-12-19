@@ -14,7 +14,6 @@ import net.p455w0rd.wirelesscraftingterminal.items.ItemWirelessCraftingTerminal;
 import com.asdflj.ae2thing.AE2Thing;
 import com.asdflj.ae2thing.api.AE2ThingAPI;
 import com.asdflj.ae2thing.api.adapter.crafting.AECraftingTerminal;
-import com.asdflj.ae2thing.api.adapter.crafting.FCCraftingTerminal;
 import com.asdflj.ae2thing.api.adapter.crafting.WCTCraftingTerminal;
 import com.asdflj.ae2thing.api.adapter.findit.EssentiaStorageBusAdapter;
 import com.asdflj.ae2thing.api.adapter.findit.FluidStorageBusAdapter;
@@ -24,7 +23,6 @@ import com.asdflj.ae2thing.api.adapter.findit.StorageBusAdapter;
 import com.asdflj.ae2thing.api.adapter.terminal.item.BackpackTerminalHandler;
 import com.asdflj.ae2thing.api.adapter.terminal.item.DualInterfaceTerminalHandler;
 import com.asdflj.ae2thing.api.adapter.terminal.item.FCBaseTerminalHandler;
-import com.asdflj.ae2thing.api.adapter.terminal.item.UltraTerminalHandler;
 import com.asdflj.ae2thing.api.adapter.terminal.item.WCTWirelessCraftingTerminalHandler;
 import com.asdflj.ae2thing.common.item.ItemBackpackTerminal;
 import com.asdflj.ae2thing.common.item.ItemPatternModifier;
@@ -44,7 +42,6 @@ import com.glodblock.github.common.item.ItemWirelessFluidTerminal;
 import com.glodblock.github.common.item.ItemWirelessInterfaceTerminal;
 import com.glodblock.github.common.item.ItemWirelessLevelTerminal;
 import com.glodblock.github.common.item.ItemWirelessPatternTerminal;
-import com.glodblock.github.common.item.ItemWirelessUltraTerminal;
 
 import appeng.api.config.Upgrades;
 import appeng.api.implementations.ICraftingPatternItem;
@@ -92,9 +89,6 @@ public class CommonProxy {
         AE2ThingAPI.instance()
             .terminal()
             .registerCraftingTerminal(new AECraftingTerminal());
-        AE2ThingAPI.instance()
-            .terminal()
-            .registerCraftingTerminal(new FCCraftingTerminal());
         if (ModAndClassUtil.WCT) {
             AE2ThingAPI.instance()
                 .terminal()
@@ -172,9 +166,6 @@ public class CommonProxy {
                 .terminal()
                 .registerFindItStorageProvider(new EssentiaStorageBusAdapter());
         }
-        AE2ThingAPI.instance()
-            .terminal()
-            .registerTerminalItem(ItemWirelessUltraTerminal.class, new UltraTerminalHandler());
         FCBaseTerminalHandler h = new FCBaseTerminalHandler();
         AE2ThingAPI.instance()
             .terminal()

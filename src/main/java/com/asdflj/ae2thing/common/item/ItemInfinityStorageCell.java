@@ -31,6 +31,7 @@ import appeng.core.features.AEFeature;
 import appeng.core.localization.GuiText;
 import appeng.items.contents.CellConfig;
 import appeng.items.contents.CellUpgrades;
+import appeng.tile.inventory.IAEStackInventory;
 import appeng.util.Platform;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
@@ -161,7 +162,7 @@ public class ItemInfinityStorageCell extends BaseCellItem implements IStorageCel
     }
 
     @Override
-    public IInventory getConfigInventory(ItemStack is) {
+    public IAEStackInventory getConfigAEInventory(ItemStack is) {
         return new CellConfig(is);
     }
 

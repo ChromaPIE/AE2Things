@@ -2,21 +2,20 @@ package com.asdflj.ae2thing.common.storage.infinityCell;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
-import com.asdflj.ae2thing.common.item.BaseCellItem;
 import com.asdflj.ae2thing.common.storage.ITFluidCellInventory;
-import com.glodblock.github.common.storage.IStorageFluidCell;
 import com.glodblock.github.util.Util;
 
 import appeng.api.AEApi;
 import appeng.api.config.Actionable;
+import appeng.api.config.FuzzyMode;
 import appeng.api.exceptions.AppEngException;
+import appeng.api.implementations.items.IStorageCell;
 import appeng.api.networking.security.BaseActionSource;
 import appeng.api.storage.ISaveProvider;
 import appeng.api.storage.StorageChannel;
@@ -25,7 +24,7 @@ import appeng.api.storage.data.IItemList;
 
 public class CreativeFluidCellInventory implements ITFluidCellInventory {
 
-    protected IStorageFluidCell cellType;
+    protected IStorageCell cellType;
     protected final ItemStack cellItem;
     protected final ISaveProvider container;
     protected IItemList<IAEFluidStack> cellFluids = null;
@@ -35,7 +34,7 @@ public class CreativeFluidCellInventory implements ITFluidCellInventory {
             throw new AppEngException("ItemStack was used as a cell, but was not a cell!");
         }
         this.cellItem = o;
-        this.cellType = (IStorageFluidCell) this.cellItem.getItem();
+        this.cellType = (IStorageCell) this.cellItem.getItem();
         this.container = c;
     }
 
@@ -45,8 +44,8 @@ public class CreativeFluidCellInventory implements ITFluidCellInventory {
     }
 
     @Override
-    public double getIdleDrain(ItemStack is) {
-        return this.cellType.getIdleDrain(is);
+    public double getIdleDrain() {
+        return this.cellType.getIdleDrain();
     }
 
     @Override
@@ -111,6 +110,16 @@ public class CreativeFluidCellInventory implements ITFluidCellInventory {
     }
 
     @Override
+    public String getOreFilter() {
+        return "";
+    }
+
+    @Override
+    public FuzzyMode getFuzzyMode() {
+        return this.cellType.getFuzzyMode(this.cellItem);
+    }
+
+    @Override
     public long getStoredFluidTypes() {
         return 1;
     }
@@ -139,7 +148,7 @@ public class CreativeFluidCellInventory implements ITFluidCellInventory {
         if (input == null || input.getStackSize() == 0) {
             return null;
         }
-        if (this.cellType.isBlackListed(this.cellItem, input)) {
+        if (this.cellType.isBlackListed(input)) {
             return input;
         }
         if (this.getCellFluids()
@@ -202,6 +211,6 @@ public class CreativeFluidCellInventory implements ITFluidCellInventory {
 
     @Override
     public StorageChannel getChannel() {
-        return ((BaseCellItem) Objects.requireNonNull(this.cellItem.getItem())).getChannel();
+        return this.cellType.getStorageChannel();
     }
 }

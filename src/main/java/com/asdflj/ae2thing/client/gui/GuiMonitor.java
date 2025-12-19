@@ -22,28 +22,31 @@ import com.asdflj.ae2thing.client.gui.widget.THGuiTextField;
 import com.asdflj.ae2thing.client.me.AdvItemRepo;
 import com.asdflj.ae2thing.inventory.InventoryHandler;
 import com.asdflj.ae2thing.inventory.gui.GuiType;
+import com.asdflj.ae2thing.network.CPacketFluidUpdate;
 import com.asdflj.ae2thing.network.CPacketInventoryAction;
 import com.asdflj.ae2thing.util.Ae2ReflectClient;
+import com.asdflj.ae2thing.util.HBMAeAddonUtil;
 import com.asdflj.ae2thing.util.ModAndClassUtil;
 import com.glodblock.github.common.item.ItemFluidDrop;
 import com.glodblock.github.crossmod.thaumcraft.AspectUtil;
+import com.glodblock.github.util.Util;
 
 import appeng.api.config.CraftingStatus;
 import appeng.api.config.SearchBoxMode;
 import appeng.api.config.Settings;
 import appeng.api.config.TerminalStyle;
 import appeng.api.config.YesNo;
+import appeng.api.storage.data.IAEFluidStack;
 import appeng.api.storage.data.IAEItemStack;
 import appeng.api.util.IConfigManager;
 import appeng.client.gui.AEBaseGui;
+import appeng.client.gui.slots.VirtualMEMonitorableSlot;
+import appeng.client.gui.slots.VirtualMESlot;
 import appeng.client.gui.widgets.GuiImgButton;
 import appeng.client.gui.widgets.GuiScrollbar;
 import appeng.client.gui.widgets.GuiTabButton;
 import appeng.client.gui.widgets.IDropToFillTextField;
 import appeng.client.gui.widgets.ISortSource;
-import appeng.client.me.InternalSlotME;
-import appeng.client.me.SlotDisconnected;
-import appeng.client.me.SlotME;
 import appeng.container.AEBaseContainer;
 import appeng.container.slot.AppEngSlot;
 import appeng.container.slot.SlotCraftingMatrix;
@@ -127,7 +130,7 @@ public abstract class GuiMonitor extends BaseMEGui
                 if (action == InventoryAction.SPLIT_OR_PLACE_SINGLE) {
                     action = InventoryAction.MOVE_REGION;
                 } else {
-                    action = InventoryAction.PICKUP_SINGLE;
+                    action = InventoryAction.PLACE_SINGLE;
                 }
             }
             if (Ae2ReflectClient.getDragClick(this)
@@ -166,115 +169,118 @@ public abstract class GuiMonitor extends BaseMEGui
 
         if (Keyboard.isKeyDown(Keyboard.KEY_SPACE)) {
             if (this.enableSpaceClicking() && !(slot instanceof SlotPatternTerm)) {
-                IAEItemStack stack = null;
-                if (slot instanceof SlotME) {
-                    stack = ((SlotME) slot).getAEStack();
-                }
+                // Space clicking for virtual slots is handled in handleVirtualSlotClick
                 int slotNum = Ae2ReflectClient.getInventorySlots(this)
                     .size();
-                if (!(slot instanceof SlotME) && slot != null) {
+                if (slot != null) {
                     slotNum = slot.slotNumber;
                 }
-                ((AEBaseContainer) this.inventorySlots).setTargetStack(stack);
+                ((AEBaseContainer) this.inventorySlots).setTargetStack(null);
                 final PacketInventoryAction p = new PacketInventoryAction(InventoryAction.MOVE_REGION, slotNum, 0);
                 NetworkHandler.instance.sendToServer(p);
                 return;
             }
         }
 
-        if (slot instanceof SlotDisconnected) {
-            if (Ae2ReflectClient.getDragClick(this)
-                .size() > 1) {
-                return;
-            }
-            InventoryAction action = null;
-            switch (mouseButton) {
-                case 0: // pickup / set-down.
-                {
-                    ItemStack heldStack = player.inventory.getItemStack();
-                    if (slot.getStack() == null && heldStack != null) action = InventoryAction.SPLIT_OR_PLACE_SINGLE;
-                    else if (slot.getStack() != null && (heldStack == null || heldStack.stackSize <= 1))
-                        action = InventoryAction.PICKUP_OR_SET_DOWN;
-                }
-                    break;
-                case 1:
-                    action = ctrlDown == 1 ? InventoryAction.PICKUP_SINGLE : InventoryAction.SHIFT_CLICK;
-                    break;
-                case 3: // creative dupe:
-                    if (player.capabilities.isCreativeMode) {
-                        action = InventoryAction.CREATIVE_DUPLICATE;
-                    }
-                    break;
-                default:
-                case 4: // drop item:
-                case 6:
-            }
-            if (action != null) {
-                final PacketInventoryAction p = new PacketInventoryAction(
-                    action,
-                    slot.getSlotIndex(),
-                    ((SlotDisconnected) slot).getSlot()
-                        .getId());
-                NetworkHandler.instance.sendToServer(p);
-            }
-            return;
+        super.handleMouseClick(slot, slotIdx, ctrlDown, mouseButton);
+    }
+
+    @Override
+    protected boolean handleVirtualSlotClick(VirtualMESlot virtualSlot, final int mouseButton) {
+        if (!(virtualSlot instanceof VirtualMEMonitorableSlot vSlot)) {
+            return super.handleVirtualSlotClick(virtualSlot, mouseButton);
         }
 
-        if (slot instanceof SlotME) {
-            InventoryAction action = null;
-            IAEItemStack stack = null;
-            switch (mouseButton) {
-                case 0: // pickup / set-down.
-                    action = ctrlDown == 1 ? InventoryAction.SPLIT_OR_PLACE_SINGLE : InventoryAction.PICKUP_OR_SET_DOWN;
-                    stack = ((SlotME) slot).getAEStack();
-                    if (stack != null && action == InventoryAction.PICKUP_OR_SET_DOWN
-                        && stack.getStackSize() == 0
-                        && player.inventory.getItemStack() == null) {
-                        action = InventoryAction.AUTO_CRAFT;
-                    }
-                    break;
-                case 1:
-                    action = ctrlDown == 1 ? InventoryAction.PICKUP_SINGLE : InventoryAction.SHIFT_CLICK;
-                    stack = ((SlotME) slot).getAEStack();
-                    break;
-                case 3: // creative dupe:
-                    stack = ((SlotME) slot).getAEStack();
-                    stack = transformItem(stack); // for fluid terminal
-                    if (stack != null && stack.isCraftable()) {
-                        action = InventoryAction.AUTO_CRAFT;
-                    } else if (player.capabilities.isCreativeMode) {
-                        final IAEItemStack slotItem = ((SlotME) slot).getAEStack();
-                        if (slotItem != null) {
-                            action = InventoryAction.CREATIVE_DUPLICATE;
-                        }
-                    } else break;
-                default:
-                case 4: // drop item:
-                case 6:
+        saveSearchString();
+        final EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+        final boolean ctrlDown = isCtrlKeyDown();
+
+        // Handle fluid container interaction first
+        IAEItemStack aeStack = vSlot.getAEStack() instanceof IAEItemStack ais ? ais : null;
+        if (aeStack != null && aeStack.getItem() instanceof ItemFluidDrop && aeStack.getStackSize() != 0) {
+            ItemStack cs = player.inventory.getItemStack();
+            IAEFluidStack fluid = ItemFluidDrop.getAeFluidStack(aeStack);
+            if (cs == null || isEmptyContainerFor(cs, fluid)) {
+                AE2Thing.proxy.netHandler.sendToServer(new CPacketFluidUpdate(fluid, isShiftKeyDown()));
+                return true;
             }
-            if (action == InventoryAction.AUTO_CRAFT) {
-                ((AEBaseContainer) this.inventorySlots).setTargetStack(stack);
-                AE2Thing.proxy.netHandler.sendToServer(
-                    new CPacketInventoryAction(
-                        action,
-                        Ae2ReflectClient.getInventorySlots(this)
-                            .size(),
-                        0,
-                        stack));
-            } else if (action != null) {
-                if (stack != null && stack.getItem() instanceof ItemFluidDrop) stack = null;
+        }
+
+        // Handle space key for move region
+        if (Keyboard.isKeyDown(Keyboard.KEY_SPACE)) {
+            if (this.enableSpaceClicking()) {
+                IAEItemStack stack = aeStack;
                 ((AEBaseContainer) this.inventorySlots).setTargetStack(stack);
                 final PacketInventoryAction p = new PacketInventoryAction(
-                    action,
+                    InventoryAction.MOVE_REGION,
                     Ae2ReflectClient.getInventorySlots(this)
                         .size(),
                     0);
                 NetworkHandler.instance.sendToServer(p);
+                return true;
             }
-            return;
         }
 
-        super.handleMouseClick(slot, slotIdx, ctrlDown, mouseButton);
+        InventoryAction action = null;
+        IAEItemStack stack = null;
+        switch (mouseButton) {
+            case 0: // left click - pickup / set-down
+                action = ctrlDown ? InventoryAction.SPLIT_OR_PLACE_SINGLE : InventoryAction.PICKUP_OR_SET_DOWN;
+                stack = aeStack;
+                if (stack != null && action == InventoryAction.PICKUP_OR_SET_DOWN
+                    && stack.getStackSize() == 0
+                    && player.inventory.getItemStack() == null) {
+                    action = InventoryAction.AUTO_CRAFT;
+                }
+                break;
+            case 1: // right click
+                action = ctrlDown ? InventoryAction.SPLIT_OR_PLACE_SINGLE : InventoryAction.SHIFT_CLICK;
+                stack = aeStack;
+                break;
+            case 2: // middle click - creative dupe or auto craft
+                stack = aeStack;
+                stack = transformItem(stack); // for fluid terminal
+                if (stack != null && stack.isCraftable()) {
+                    action = InventoryAction.AUTO_CRAFT;
+                } else if (player.capabilities.isCreativeMode && aeStack != null) {
+                    action = InventoryAction.CREATIVE_DUPLICATE;
+                    stack = aeStack;
+                }
+                break;
+            default:
+                break;
+        }
+
+        if (action == InventoryAction.AUTO_CRAFT) {
+            ((AEBaseContainer) this.inventorySlots).setTargetStack(stack);
+            AE2Thing.proxy.netHandler.sendToServer(
+                new CPacketInventoryAction(
+                    action,
+                    Ae2ReflectClient.getInventorySlots(this)
+                        .size(),
+                    0,
+                    stack));
+            return true;
+        } else if (action != null) {
+            if (stack != null && stack.getItem() instanceof ItemFluidDrop) stack = null;
+            ((AEBaseContainer) this.inventorySlots).setTargetStack(stack);
+            final PacketInventoryAction p = new PacketInventoryAction(
+                action,
+                Ae2ReflectClient.getInventorySlots(this)
+                    .size(),
+                0);
+            NetworkHandler.instance.sendToServer(p);
+            return true;
+        }
+
+        return super.handleVirtualSlotClick(virtualSlot, mouseButton);
+    }
+
+    private boolean isEmptyContainerFor(ItemStack is, IAEFluidStack fs) {
+        if (is == null) return false;
+        return Util.FluidUtil.isEmpty(is)
+            || (ModAndClassUtil.THE && AspectUtil.isEssentiaContainer(is) && AspectUtil.isEmptyEssentiaContainer(is))
+            || (ModAndClassUtil.HBM_AE_ADDON && HBMAeAddonUtil.getItemIsEmptyContainer(is, fs));
     }
 
     protected IAEItemStack transformItem(IAEItemStack stack) {
@@ -326,15 +332,6 @@ public abstract class GuiMonitor extends BaseMEGui
             this.rows = 3;
         }
 
-        this.getMeSlots()
-            .clear();
-        for (int y = 0; y < this.rows; y++) {
-            for (int x = 0; x < this.perRow; x++) {
-                this.getMeSlots()
-                    .add(new InternalSlotME(this.repo, x + y * this.perRow, this.offsetX + x * 18, 18 + y * 18));
-            }
-        }
-
         if (AEConfig.instance.getConfigManager()
             .getSetting(Settings.TERMINAL_STYLE) != TerminalStyle.FULL) {
             this.xSize = this.standardSize + ((this.perRow - 9) * 18);
@@ -343,6 +340,18 @@ public abstract class GuiMonitor extends BaseMEGui
         }
 
         super.initGui();
+
+        for (int y = 0; y < this.rows; y++) {
+            for (int x = 0; x < this.perRow; x++) {
+                VirtualMEMonitorableSlot slot = new VirtualMEMonitorableSlot(
+                    this.offsetX + x * 18,
+                    18 + y * 18,
+                    this.repo,
+                    x + y * this.perRow);
+                this.registerVirtualSlots(slot);
+            }
+        }
+
         // full size : 204
         // extra slots : 72
         // slot 18

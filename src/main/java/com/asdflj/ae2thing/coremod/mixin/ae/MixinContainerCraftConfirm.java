@@ -7,6 +7,7 @@ import net.minecraft.entity.player.InventoryPlayer;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -20,6 +21,7 @@ import appeng.api.networking.IGrid;
 import appeng.api.networking.crafting.ICraftingJob;
 import appeng.api.storage.ITerminalHost;
 import appeng.api.storage.data.IAEItemStack;
+import appeng.api.storage.data.IAEStack;
 import appeng.container.AEBaseContainer;
 import appeng.container.implementations.ContainerCraftConfirm;
 
@@ -27,37 +29,38 @@ import appeng.container.implementations.ContainerCraftConfirm;
 public abstract class MixinContainerCraftConfirm extends AEBaseContainer {
 
     @Shadow(remap = false)
-    private ICraftingJob result;
+    protected ICraftingJob result;
 
     @Shadow(remap = false)
     public abstract boolean isSimulation();
 
     @Shadow(remap = false)
-    protected abstract IGrid getGrid();
+    public abstract IGrid getGrid();
 
-    private IAEItemStack is = null;
+    @Unique
+    private IAEItemStack aE2Things$is = null;
 
     public MixinContainerCraftConfirm(InventoryPlayer ip, ITerminalHost anchor) {
         super(ip, anchor);
     }
 
     @Inject(method = "setItemToCraft", at = @At("HEAD"), remap = false)
-    public void setItemToCraft(IAEItemStack itemToCraft, CallbackInfo ci) {
-        if (itemToCraft != null) {
-            is = itemToCraft.copy();
+    public void setItemToCraft(IAEStack<?> itemToCraft, CallbackInfo ci) {
+        if (itemToCraft instanceof IAEItemStack ais) {
+            aE2Things$is = ais.copy();
         }
     }
 
     @Inject(method = "startJob()V", at = @At("HEAD"), remap = false)
     public void startJob(CallbackInfo ci) {
-        if (this.result != null && !this.isSimulation() && getGrid() != null && is != null) {
-            if (ModAndClassUtil.THE && TheUtil.isItemCraftingAspect(is)) {
-                is = TheUtil.itemCraftingAspect2FluidDrop(is);
+        if (this.result != null && !this.isSimulation() && getGrid() != null && aE2Things$is != null) {
+            if (ModAndClassUtil.THE && TheUtil.isItemCraftingAspect(aE2Things$is)) {
+                aE2Things$is = TheUtil.itemCraftingAspect2FluidDrop(aE2Things$is);
             }
             SPacketMEItemInvUpdate piu = new SPacketMEItemInvUpdate(ADD_PINNED_ITEM);
-            piu.appendItem(is);
+            piu.appendItem(aE2Things$is);
             AE2Thing.proxy.netHandler.sendTo(piu, (EntityPlayerMP) this.getPlayerInv().player);
-            is = null;
+            aE2Things$is = null;
         }
     }
 }

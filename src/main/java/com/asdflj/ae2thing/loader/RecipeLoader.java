@@ -220,7 +220,7 @@ public class RecipeLoader implements Runnable {
                 AE2ThingAPI.PHIAL);
             GameRegistry.addShapelessRecipe(
                 ESSENTIA_DISCRETIZER.stack(),
-                com.glodblock.github.loader.ItemAndBlockHolder.DISCRETIZER,
+                com.glodblock.github.loader.ItemAndBlockHolder.DECODER,
                 AE2ThingAPI.PHIAL);
             GameRegistry.addShapelessRecipe(INFUSION_INTERFACE.stack(), THAUMATRIUM_INTERFACE.stack());
             GameRegistry.addShapelessRecipe(THAUMATRIUM_INTERFACE.stack(), INFUSION_INTERFACE.stack());

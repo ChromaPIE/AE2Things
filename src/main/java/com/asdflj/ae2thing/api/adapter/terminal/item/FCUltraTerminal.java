@@ -14,11 +14,11 @@ import net.minecraft.nbt.NBTTagCompound;
 
 import com.asdflj.ae2thing.api.Constants;
 import com.asdflj.ae2thing.nei.ButtonConstants;
+import com.glodblock.github.common.item.ItemBaseWirelessTerminal;
 import com.glodblock.github.common.item.ItemWirelessUltraTerminal;
-import com.glodblock.github.inventory.gui.GuiType;
 import com.glodblock.github.util.NameConst;
+import com.glodblock.github.util.UltraTerminalModes;
 
-import appeng.helpers.InventoryAction;
 import appeng.util.Platform;
 
 public class FCUltraTerminal implements IItemTerminal {
@@ -51,10 +51,9 @@ public class FCUltraTerminal implements IItemTerminal {
             NBTTagCompound tag = this.newNBT();
             tag.setInteger(Constants.SLOT, slot);
             if (getConfigValue(ButtonConstants.ULTRA_TERMINAL_MODE)) {
-                List<GuiType> guis = ItemWirelessUltraTerminal.getGuis();
-                for (GuiType guiType : guis) {
+                for (UltraTerminalModes mode : UltraTerminalModes.values()) {
                     ItemStack t = source.copy();
-                    terminalItem.setNext(guiType, t);
+                    ItemBaseWirelessTerminal.setMode(t, mode);
                     NBTTagCompound data = Platform.openNbtData(t);
                     if (data.hasKey("display")) {
                         terminal.add(
@@ -62,7 +61,8 @@ public class FCUltraTerminal implements IItemTerminal {
                                 source,
                                 t,
                                 t.getDisplayName() + " "
-                                    + I18n.format(NameConst.TT_ULTRA_TERMINAL + "." + terminalItem.guiGuiType(t)),
+                                    + I18n.format(
+                                        NameConst.TT_ULTRA_TERMINAL + "." + ItemBaseWirelessTerminal.getMode(t)),
                                 tag));
                     } else {
                         terminal.add(new TerminalItems(source, t, tag));
@@ -87,11 +87,8 @@ public class FCUltraTerminal implements IItemTerminal {
 
     @Override
     public void openCraftAmount() {
-        com.glodblock.github.network.CPacketInventoryAction packet = new com.glodblock.github.network.CPacketInventoryAction(
-            InventoryAction.AUTO_CRAFT,
-            0,
-            0);
-        com.glodblock.github.FluidCraft.proxy.netHandler.sendToServer(packet);
+        appeng.core.sync.network.NetworkHandler.instance.sendToServer(
+            new appeng.core.sync.packets.PacketInventoryAction(appeng.helpers.InventoryAction.AUTO_CRAFT, 0, 0));
     }
 
 }

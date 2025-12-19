@@ -36,10 +36,10 @@ import appeng.api.storage.data.IAEFluidStack;
 import appeng.api.storage.data.IAEItemStack;
 import appeng.api.util.IConfigManager;
 import appeng.client.gui.AEBaseGui;
+import appeng.client.gui.slots.VirtualMESlot;
 import appeng.client.gui.widgets.GuiTabButton;
 import appeng.client.gui.widgets.IDropToFillTextField;
 import appeng.client.gui.widgets.ISortSource;
-import appeng.client.me.InternalSlotME;
 import appeng.container.slot.AppEngSlot;
 import appeng.container.slot.SlotFakeCraftingMatrix;
 import appeng.container.slot.SlotPatternTerm;
@@ -59,6 +59,7 @@ public class GuiWirelessDualInterfaceTerminal extends GuiBaseInterfaceWireless i
     private Point mouse;
     private boolean dragging = false;
     private final ItemPanel itemPanel;
+    private final List<VirtualMESlot> panelVirtualSlots = new ArrayList<>();
 
     public GuiWirelessDualInterfaceTerminal(InventoryPlayer inventoryPlayer, ITerminalHost te) {
         super(inventoryPlayer, te);
@@ -255,8 +256,13 @@ public class GuiWirelessDualInterfaceTerminal extends GuiBaseInterfaceWireless i
     }
 
     @Override
-    public List<InternalSlotME> getMeSlots() {
-        return super.getMeSlots();
+    public List<VirtualMESlot> getVirtualSlots() {
+        return this.panelVirtualSlots;
+    }
+
+    @Override
+    public void clearVirtualSlots() {
+        this.panelVirtualSlots.clear();
     }
 
     @Override

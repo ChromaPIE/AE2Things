@@ -21,6 +21,11 @@ public class GuiManaIO extends GuiUpgradeable {
     }
 
     @Override
+    protected String getBackground() {
+        return "guis/bus.png";
+    }
+
+    @Override
     protected GuiText getName() {
         return this.bus instanceof PartManaImportBus ? GuiText.ImportBus : GuiText.ExportBus;
     }

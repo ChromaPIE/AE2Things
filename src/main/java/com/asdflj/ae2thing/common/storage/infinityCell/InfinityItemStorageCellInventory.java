@@ -224,7 +224,10 @@ public class InfinityItemStorageCellInventory implements ITCellInventory {
         final ItemStack sharedItemStack = input.getItemStack();
 
         if (isStorageCell(sharedItemStack)) {
-            final IMEInventory<IAEItemStack> meInventory = getCell(sharedItemStack, null);
+            final IMEInventory<IAEItemStack> meInventory = (IMEInventory<IAEItemStack>) getCell(
+                sharedItemStack,
+                null,
+                StorageChannel.ITEMS);
 
             if (meInventory != null && !this.isEmpty(meInventory)) {
                 return input;

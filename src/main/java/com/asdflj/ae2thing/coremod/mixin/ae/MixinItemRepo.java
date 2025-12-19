@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.item.ItemStack;
 
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -24,6 +23,7 @@ import com.asdflj.ae2thing.client.me.AdvItemRepo;
 import com.asdflj.ae2thing.client.me.IDisplayRepoExtend;
 
 import appeng.api.storage.data.IAEItemStack;
+import appeng.api.storage.data.IAEStack;
 import appeng.api.storage.data.IDisplayRepo;
 import appeng.api.storage.data.IItemList;
 import appeng.client.me.ItemRepo;
@@ -33,11 +33,7 @@ public abstract class MixinItemRepo implements IDisplayRepo, IDisplayRepoExtend 
 
     @Shadow(remap = false)
     @Final
-    private ArrayList<ItemStack> dsp;
-
-    @Shadow(remap = false)
-    @Final
-    private ArrayList<IAEItemStack> view;
+    private ArrayList<IAEStack<?>> view;
 
     @Shadow(remap = false)
     @Final
@@ -48,7 +44,6 @@ public abstract class MixinItemRepo implements IDisplayRepo, IDisplayRepoExtend 
 
     private void setAsEmpty(int i) {
         this.view.add(i, null);
-        this.dsp.add(i, null);
     }
 
     private final Minecraft mc = Minecraft.getMinecraft();
@@ -102,11 +97,11 @@ public abstract class MixinItemRepo implements IDisplayRepo, IDisplayRepoExtend 
     }
 
     private void viewFilter() {
-        List<IAEItemStack> list = this.view.stream()
+        List<IAEStack<?>> filteredList = this.view.stream()
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
         this.view.clear();
-        this.view.addAll(list);
+        this.view.addAll(filteredList);
     }
 
     @Inject(method = "updateView", at = @At(value = "TAIL"), remap = false)
@@ -134,11 +129,10 @@ public abstract class MixinItemRepo implements IDisplayRepo, IDisplayRepoExtend 
             }
             IAEItemStack is = pinItems.get(i);
             IAEItemStack item = this.list.findPrecise(is);
-            Set<IAEItemStack> itemSet = new HashSet<>(this.view);
+            Set<IAEStack<?>> itemSet = new HashSet<>(this.view);
             if (item != null) {
                 if (!itemSet.contains(item)) {
                     this.view.add(i, item);
-                    this.dsp.add(i, item.getItemStack());
                 }
                 continue;
             }

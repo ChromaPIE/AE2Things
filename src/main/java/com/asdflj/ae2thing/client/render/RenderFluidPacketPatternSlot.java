@@ -5,23 +5,21 @@ import static appeng.client.gui.AEBaseGui.aeRenderItem;
 import java.util.function.Predicate;
 
 import net.minecraft.inventory.Slot;
-import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 
 import com.asdflj.ae2thing.client.gui.IGuiDrawSlot;
 import com.glodblock.github.common.item.ItemFluidPacket;
 
 import appeng.api.storage.data.IAEItemStack;
-import appeng.client.me.SlotME;
 
 public class RenderFluidPacketPatternSlot implements ISlotRender {
 
     @Override
     public Predicate<Slot> get() {
         return slot -> {
-            if (!(slot instanceof SlotME)) {
-                ItemStack stack = slot.getStack();
-                return stack.getItem() instanceof ItemFluidPacket;
+            if (slot.getStack() != null) {
+                return slot.getStack()
+                    .getItem() instanceof ItemFluidPacket;
             }
             return false;
         };
@@ -29,7 +27,7 @@ public class RenderFluidPacketPatternSlot implements ISlotRender {
 
     @Override
     public boolean drawSlot(Slot slot, IAEItemStack stack, IGuiDrawSlot draw, boolean display) {
-        if (stack.getItem() instanceof ItemFluidPacket && !(slot instanceof SlotME)) {
+        if (stack.getItem() instanceof ItemFluidPacket) {
             FluidStack fluidStack = ItemFluidPacket.getFluidStack(stack);
             if (fluidStack == null || fluidStack.amount <= 0) {
                 return true;

@@ -24,6 +24,7 @@ import appeng.api.implementations.guiobjects.IGuiItemObject;
 import appeng.api.parts.IPart;
 import appeng.api.parts.PartItemStack;
 import appeng.api.storage.data.IAEItemStack;
+import appeng.api.storage.data.IAEStack;
 import appeng.api.storage.data.IDisplayRepo;
 import appeng.client.gui.AEBaseGui;
 import appeng.client.me.ItemRepo;
@@ -93,10 +94,14 @@ public abstract class MixinPanelWidget extends Widget implements IContainerToolt
 
     private boolean canCraftItem(ItemRepo repo, ItemStack is) {
         if (repo == null || is == null) return false;
-        IAEItemStack item = repo.getAvailableItems()
-            .findPrecise(AEItemStack.create(is));
-        if (item == null) return false;
-        return item.isCraftable();
+        IAEItemStack target = AEItemStack.create(is);
+        for (int i = 0; i < repo.size(); i++) {
+            IAEStack<?> item = repo.getReferenceStack(i);
+            if (item != null && item.isSameType(target) && item.isCraftable()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void openCraftAmount(Class<? extends Item> o, AEBaseContainer c, ItemStack is) {

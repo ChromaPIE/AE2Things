@@ -20,7 +20,6 @@ import com.mitchej123.hodgepodge.textures.IPatchedTextureAtlasSprite;
 
 import appeng.api.storage.data.IAEItemStack;
 import appeng.client.gui.AEBaseGui;
-import appeng.client.me.SlotME;
 import appeng.container.slot.SlotInaccessible;
 import appeng.container.slot.SlotPlayerHotBar;
 import appeng.container.slot.SlotPlayerInv;
@@ -33,9 +32,7 @@ public interface IGuiDrawSlot {
         if (drawStack == null || drawStack.getItem() == null) return true;
         IAEItemStack stack;
         boolean display = false;
-        if (slot instanceof SlotME) {
-            stack = ((SlotME) slot).getAEStack();
-        } else if (slot instanceof SlotInaccessible) {
+        if (slot instanceof SlotInaccessible) {
             stack = AEItemStack.create(drawStack);
             drawStack.stackSize = 0;
             ((SlotInaccessible) slot).setDisplay(true);

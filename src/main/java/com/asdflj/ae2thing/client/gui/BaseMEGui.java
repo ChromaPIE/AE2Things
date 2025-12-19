@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.resources.I18n;
@@ -19,17 +18,14 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
-import com.asdflj.ae2thing.AE2Thing;
 import com.asdflj.ae2thing.api.AE2ThingAPI;
 import com.asdflj.ae2thing.client.gui.widget.IGuiSelection;
 import com.asdflj.ae2thing.nei.ButtonConstants;
 import com.asdflj.ae2thing.nei.NEI_TH_Config;
-import com.asdflj.ae2thing.network.CPacketFluidUpdate;
 import com.asdflj.ae2thing.util.Ae2ReflectClient;
 import com.asdflj.ae2thing.util.HBMAeAddonUtil;
 import com.asdflj.ae2thing.util.ModAndClassUtil;
 import com.asdflj.ae2thing.util.NameConst;
-import com.glodblock.github.common.item.ItemFluidDrop;
 import com.glodblock.github.crossmod.thaumcraft.AspectUtil;
 import com.glodblock.github.hbmaeaddon.util.HBMUtil;
 import com.glodblock.github.util.Util;
@@ -37,12 +33,11 @@ import com.glodblock.github.util.Util;
 import appeng.api.config.SearchBoxMode;
 import appeng.api.config.Settings;
 import appeng.api.storage.data.IAEFluidStack;
-import appeng.api.storage.data.IAEItemStack;
 import appeng.api.util.IConfigManager;
 import appeng.api.util.IConfigurableObject;
 import appeng.client.ActionKey;
-import appeng.client.gui.AEBaseMEGui;
-import appeng.client.me.SlotME;
+import appeng.client.gui.AEBaseGui;
+import appeng.client.gui.slots.VirtualMESlot;
 import appeng.core.AEConfig;
 import appeng.core.CommonHelper;
 import codechicken.nei.LayoutManager;
@@ -51,7 +46,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import thaumcraft.api.aspects.Aspect;
 
-public abstract class BaseMEGui extends AEBaseMEGui implements IGuiSelection {
+public abstract class BaseMEGui extends AEBaseGui implements IGuiSelection {
 
     protected IConfigManager configSrc;
     protected TextHistory history;
@@ -102,35 +97,6 @@ public abstract class BaseMEGui extends AEBaseMEGui implements IGuiSelection {
 
     @SideOnly(Side.CLIENT)
     public boolean updateFluidContainer(Slot slot, int slotIdx, int ctrlDown, int mouseButton) {
-        final EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-        if (slot instanceof SlotME sme) {
-            try {
-                ItemStack cs = player.inventory.getItemStack();
-                IAEItemStack item = sme.getHasStack() ? sme.getAEStack() : null;
-                if (ctrlDown == 0) {
-                    if (item != null && item.getItem() != null
-                        && item.getItem() instanceof ItemFluidDrop
-                        && item.getStackSize() != 0) {
-                        if (cs == null || isEmptyContainer(cs, ItemFluidDrop.getAeFluidStack(item))) {
-                            IAEFluidStack fluid = ItemFluidDrop.getAeFluidStack(item);
-                            AE2Thing.proxy.netHandler.sendToServer(new CPacketFluidUpdate(fluid, isShiftKeyDown()));
-                            return true;
-                        }
-                    }
-                } else if (ctrlDown == 1 && isFilledContainer(cs)) {
-                    AE2Thing.proxy.netHandler.sendToServer(new CPacketFluidUpdate(null, isShiftKeyDown()));
-                    return true;
-                }
-                if (mouseButton == 3 && player.capabilities.isCreativeMode
-                    && item != null
-                    && !item.isCraftable()
-                    && item.getItem() instanceof ItemFluidDrop) {
-                    return false;
-                }
-            } catch (Exception e) {
-                return false;
-            }
-        }
         return false;
     }
 
@@ -225,8 +191,8 @@ public abstract class BaseMEGui extends AEBaseMEGui implements IGuiSelection {
         EntityPlayer player = this.mc.thePlayer;
         ItemStack is = player.inventory.getItemStack();
         if (isFilledContainer(is)) {
-            Slot s = this.getSlot(mouseX, mouseY);
-            if (s instanceof SlotME) {
+            VirtualMESlot s = this.getVirtualMESlotUnderMouse();
+            if (s != null) {
                 List<String> message = new ArrayList<>();
                 message.add(
                     "\u00a77" + I18n.format(

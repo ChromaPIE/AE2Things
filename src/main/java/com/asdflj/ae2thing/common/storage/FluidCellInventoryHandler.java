@@ -71,6 +71,11 @@ public class FluidCellInventoryHandler extends MEInventoryHandler<IAEFluidStack>
         return IncludeExclude.WHITELIST;
     }
 
+    @Override
+    public boolean isFuzzy() {
+        return false;
+    }
+
     public int getStatusForCell() {
         int val = this.getCellInv()
             .getStatusForCell();

@@ -2,6 +2,7 @@ package com.asdflj.ae2thing.api;
 
 public enum InventoryActionExtend {
     SET_PATTERN_NAME,
+    SET_PATTERN_VALUE,
     GET_CRAFTING_STATE,
     REPLACE_PATTERN,
     CLEAR_PATTERN,

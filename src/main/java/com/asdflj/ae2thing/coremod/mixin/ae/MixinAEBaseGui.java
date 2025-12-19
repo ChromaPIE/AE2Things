@@ -4,11 +4,9 @@ import static com.asdflj.ae2thing.client.render.RenderHelper.canDrawPlus;
 import static com.asdflj.ae2thing.client.render.RenderHelper.drawPlus;
 
 import java.util.List;
-import java.util.Optional;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.inventory.Slot;
 import net.minecraft.util.ResourceLocation;
 
 import org.lwjgl.input.Mouse;
@@ -25,9 +23,8 @@ import com.asdflj.ae2thing.client.render.RenderHelper;
 
 import appeng.api.storage.data.IAEItemStack;
 import appeng.client.gui.AEBaseGui;
+import appeng.client.gui.slots.VirtualMESlot;
 import appeng.client.gui.widgets.GuiScrollbar;
-import appeng.client.me.InternalSlotME;
-import appeng.client.me.SlotME;
 
 @Mixin(value = AEBaseGui.class)
 public abstract class MixinAEBaseGui extends GuiScreen {
@@ -39,10 +36,7 @@ public abstract class MixinAEBaseGui extends GuiScreen {
     public abstract int getGuiTop();
 
     @Shadow(remap = false)
-    protected abstract List<InternalSlotME> getMeSlots();
-
-    @Shadow(remap = false)
-    protected abstract List<Slot> getInventorySlots();
+    protected List<VirtualMESlot> virtualSlots;
 
     @Shadow(remap = false)
     protected abstract GuiScrollbar getScrollBar();
@@ -59,46 +53,33 @@ public abstract class MixinAEBaseGui extends GuiScreen {
         if (!AE2ThingAPI.instance()
             .terminal()
             .isPinTerminal(this)) return;
-        if (this.getMeSlots()
-            .isEmpty()
-            || AE2ThingAPI.instance()
-                .getPinned()
-                .isEmpty())
-            return;
-        Optional<Slot> slot = this.getInventorySlots()
-            .stream()
-            .filter(s -> s instanceof SlotME)
-            .findFirst();
-        if (slot.isPresent() && this.getScrollBar() != null
+        if (this.virtualSlots.isEmpty() || AE2ThingAPI.instance()
+            .getPinned()
+            .isEmpty()) return;
+        if (!this.virtualSlots.isEmpty() && this.getScrollBar() != null
             && this.getScrollBar()
                 .getCurrentScroll() == 0) {
+            VirtualMESlot firstSlot = this.virtualSlots.get(0);
             GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
             this.bindTexture();
-            this.drawTexturedModalRect(
-                this.getGuiLeft() + slot.get().xDisplayPosition - 1,
-                this.getGuiTop() + 17,
-                0,
-                0,
-                195,
-                18);
+            this.drawTexturedModalRect(this.getGuiLeft() + firstSlot.getX() - 1, this.getGuiTop() + 17, 0, 0, 195, 18);
         }
-
     }
 
-    @Inject(method = "drawAESlot", at = @At("HEAD"), remap = false)
-    private void drawAESlot(Slot slotIn, CallbackInfo ci) {
-        if (canDrawPlus && slotIn instanceof SlotME slotME && slotME.getHasStack()) {
-            IAEItemStack is = slotME.getAEStack();
-            if (is.isCraftable() && is.getStackSize() > 0) {
-                int x = slotIn.xDisplayPosition;
-                int y = slotIn.yDisplayPosition;
+    @Inject(method = "drawVirtualSlot", at = @At("HEAD"), remap = false)
+    private void drawVirtualSlotHead(VirtualMESlot slotIn, CallbackInfo ci) {
+        if (canDrawPlus && slotIn.getAEStack() != null) {
+            IAEItemStack is = slotIn.getAEStack() instanceof IAEItemStack ais ? ais : null;
+            if (is != null && is.isCraftable() && is.getStackSize() > 0) {
+                int x = slotIn.getX();
+                int y = slotIn.getY();
                 drawPlus(x, y);
             }
         }
     }
 
-    @Inject(method = "drawAESlot", at = @At("TAIL"), remap = false)
-    private void drawAESlotBG(Slot slotIn, CallbackInfo ci) {
+    @Inject(method = "drawVirtualSlot", at = @At("TAIL"), remap = false)
+    private void drawVirtualSlotTail(VirtualMESlot slotIn, CallbackInfo ci) {
         RenderHelper.drawPinnedSlot(slotIn, this);
     }
 

@@ -20,11 +20,8 @@ public class FCPatternTerminal implements ITerminal {
 
     @Override
     public void openCraftAmount() {
-        com.glodblock.github.network.CPacketInventoryAction packet = new com.glodblock.github.network.CPacketInventoryAction(
-            InventoryAction.AUTO_CRAFT,
-            0,
-            0);
-        com.glodblock.github.FluidCraft.proxy.netHandler.sendToServer(packet);
+        appeng.core.sync.network.NetworkHandler.instance
+            .sendToServer(new appeng.core.sync.packets.PacketInventoryAction(InventoryAction.AUTO_CRAFT, 0, 0));
     }
 
 }

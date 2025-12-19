@@ -11,15 +11,12 @@ import java.util.Set;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 
-import com.glodblock.github.client.gui.GuiDualInterface;
-
 import appeng.api.storage.data.IAEItemStack;
 import appeng.api.storage.data.IItemList;
 import appeng.client.gui.AEBaseGui;
 import appeng.client.gui.implementations.GuiCraftingStatus;
 import appeng.client.gui.widgets.GuiTabButton;
 import appeng.client.me.ItemRepo;
-import appeng.helpers.IInterfaceHost;
 import codechicken.nei.SearchField;
 import codechicken.nei.util.TextHistory;
 import cpw.mods.fml.relauncher.Side;
@@ -33,14 +30,12 @@ public class Ae2ReflectClient {
     private static final Field fItemRepo_view;
     private static final Field fItemRepo_dsp;
     private static final Field fItemRepo_list;
-    private static final Field fGuiDualInterface_host;
 
     static {
         try {
             fItemRepo_view = reflectField(ItemRepo.class, "view");
             fItemRepo_dsp = reflectField(ItemRepo.class, "dsp");
             fItemRepo_list = reflectField(ItemRepo.class, "list");
-            fGuiDualInterface_host = reflectField(GuiDualInterface.class, "host");
             fSearchField_history = reflectField(SearchField.class, "history");
             fTextHistory_history = reflectField(TextHistory.class, "history");
         } catch (NoSuchFieldException e) {
@@ -83,10 +78,6 @@ public class Ae2ReflectClient {
 
     public static IItemList<IAEItemStack> getList(ItemRepo repo) {
         return readField(repo, fItemRepo_list);
-    }
-
-    public static IInterfaceHost getHost(GuiDualInterface gui) {
-        return readField(gui, fGuiDualInterface_host);
     }
 
 }

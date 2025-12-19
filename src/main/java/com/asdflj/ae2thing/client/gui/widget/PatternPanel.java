@@ -20,7 +20,6 @@ import com.asdflj.ae2thing.api.InventoryActionExtend;
 import com.asdflj.ae2thing.client.gui.IWidgetGui;
 import com.asdflj.ae2thing.client.gui.container.ContainerWirelessDualInterfaceTerminal;
 import com.asdflj.ae2thing.client.gui.container.slot.SlotPatternFake;
-import com.asdflj.ae2thing.network.CPacketInventoryAction;
 import com.asdflj.ae2thing.network.CPacketInventoryActionExtend;
 import com.asdflj.ae2thing.network.CPacketTerminalBtns;
 import com.asdflj.ae2thing.util.Ae2ReflectClient;
@@ -388,8 +387,9 @@ public class PatternPanel implements IAEBasePanel {
                             AE2Thing.proxy.netHandler
                                 .sendToServer(new CPacketInventoryActionExtend(action, i, 0, stack));
                         } else {
-                            InventoryAction action = InventoryAction.SET_PATTERN_VALUE;
-                            AE2Thing.proxy.netHandler.sendToServer(new CPacketInventoryAction(action, i, 0, stack));
+                            InventoryActionExtend action = InventoryActionExtend.SET_PATTERN_VALUE;
+                            AE2Thing.proxy.netHandler
+                                .sendToServer(new CPacketInventoryActionExtend(action, i, 0, stack));
                         }
                     }
                 }
@@ -403,7 +403,7 @@ public class PatternPanel implements IAEBasePanel {
             if (action == InventoryAction.SPLIT_OR_PLACE_SINGLE) {
                 action = InventoryAction.MOVE_REGION;
             } else {
-                action = InventoryAction.PICKUP_SINGLE;
+                action = InventoryAction.PLACE_SINGLE;
             }
         }
         if (Ae2ReflectClient.getDragClick(this.parent)

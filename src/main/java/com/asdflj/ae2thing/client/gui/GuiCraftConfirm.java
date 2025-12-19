@@ -3,7 +3,6 @@ package com.asdflj.ae2thing.client.gui;
 import net.minecraft.entity.player.InventoryPlayer;
 
 import com.asdflj.ae2thing.common.parts.PartInfusionPatternTerminal;
-import com.asdflj.ae2thing.inventory.InventoryHandler;
 import com.asdflj.ae2thing.inventory.gui.GuiType;
 import com.asdflj.ae2thing.inventory.item.WirelessDualInterfaceTerminalInventory;
 
@@ -20,10 +19,5 @@ public class GuiCraftConfirm extends appeng.client.gui.implementations.GuiCraftC
         } else if (te instanceof WirelessDualInterfaceTerminalInventory) {
             this.originalGui = GuiType.WIRELESS_DUAL_INTERFACE_TERMINAL;
         }
-    }
-
-    @Override
-    public void switchToOriginalGUI() {
-        InventoryHandler.switchGui(originalGui);
     }
 }
