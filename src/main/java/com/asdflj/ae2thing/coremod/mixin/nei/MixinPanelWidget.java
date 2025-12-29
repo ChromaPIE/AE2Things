@@ -10,6 +10,7 @@ import net.minecraftforge.common.MinecraftForge;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -68,9 +69,9 @@ public abstract class MixinPanelWidget extends Widget implements IContainerToolt
                     if (NEIClientUtils.shiftKey()) {
                         action = InventoryAction.PICKUP_OR_SET_DOWN;
                     } else if (GuiScreen.isCtrlKeyDown()) {
-                        action = InventoryAction.PICKUP_SINGLE;
+                        action = InventoryAction.PLACE_SINGLE;
                     } else if (getConfigValue(ButtonConstants.NEI_CRAFT_ITEM) && repo instanceof ItemRepo itemRepo
-                        && canCraftItem(itemRepo, is)) {
+                        && aE2Things$canCraftItem(itemRepo, is)) {
                             is = is.copy();
                             if (is.stackSize <= 0) {
                                 is.stackSize = 1;
@@ -78,7 +79,7 @@ public abstract class MixinPanelWidget extends Widget implements IContainerToolt
                             if (c.getTarget() instanceof IGuiItemObject o && o.getItemStack() != null
                                 && o.getItemStack()
                                     .getItem() != null) {
-                                openCraftAmount(
+                                aE2Things$openCraftAmount(
                                     o.getItemStack()
                                         .getItem()
                                         .getClass(),
@@ -87,7 +88,7 @@ public abstract class MixinPanelWidget extends Widget implements IContainerToolt
                             } else if (c.getTarget() instanceof IPart p) {
                                 ItemStack part = p.getItemStack(PartItemStack.Network);
                                 if (part != null && part.getItem() != null) {
-                                    openCraftAmount(
+                                    aE2Things$openCraftAmount(
                                         part.getItem()
                                             .getClass(),
                                         c,
@@ -111,7 +112,8 @@ public abstract class MixinPanelWidget extends Widget implements IContainerToolt
         } catch (Exception ignored) {}
     }
 
-    private boolean canCraftItem(ItemRepo repo, ItemStack is) {
+    @Unique
+    private boolean aE2Things$canCraftItem(ItemRepo repo, ItemStack is) {
         if (repo == null || is == null) return false;
         IAEItemStack target = AEItemStack.create(is);
         for (int i = 0; i < repo.size(); i++) {
@@ -123,7 +125,8 @@ public abstract class MixinPanelWidget extends Widget implements IContainerToolt
         return false;
     }
 
-    private void openCraftAmount(Class<? extends Item> o, AEBaseContainer c, ItemStack is) {
+    @Unique
+    private void aE2Things$openCraftAmount(Class<? extends Item> o, AEBaseContainer c, ItemStack is) {
         for (ITerminal terminal : AE2ThingAPI.instance()
             .terminal()
             .getTerminalSet()) {
